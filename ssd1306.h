@@ -160,6 +160,25 @@ void SSD1306_drawVLine (SSD1306_Device* dev,
                         SSD1306_Color color);
 
 /**
+ * The function draw a rectangle. It can be fill or not.
+ *
+ * @param[in] dev The handle of the device
+ * @param[in] xStart The starting x position
+ * @param[in] yStart The starting y position
+ * @param[in] width The ending x position
+ * @param[in] height The ending y position
+ * @param[in] color The color of the rectangle
+ * @param[in] isFill If TRUE the rectangle will be fill
+ */
+void SSD1306_drawRectangle (SSD1306_Device* dev,
+                            uint16_t xStart,
+                            uint16_t yStart,
+                            uint16_t width,
+                            uint16_t height,
+                            uint8_t color,
+                            bool isFill);
+
+/**
  *
  *
  * @param[in] dev The handle of the device

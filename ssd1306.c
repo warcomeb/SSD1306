@@ -232,6 +232,20 @@ void SSD1306_drawVLine (SSD1306_Device* dev,
     SSD1306_drawLine(dev,xStart,yStart,xStart,yStart+height,color);
 }
 
+void SSD1306_drawRectangle (SSD1306_Device* dev,
+                            uint16_t xStart,
+                            uint16_t yStart,
+                            uint16_t width,
+                            uint16_t height,
+                            uint8_t color,
+                            bool isFill)
+{
+    if (color == SSD1306_COLOR_BLACK)
+        GDL_drawRectangle(&(dev->gdl),xStart,yStart,width,height,0,isFill);
+    else
+        GDL_drawRectangle(&(dev->gdl),xStart,yStart,width,height,1,isFill);
+}
+
 void SSD1306_inverseDisplay (SSD1306_Device* dev)
 {
     SSD1306_sendCommand(dev,SSD1306_CMD_DISPLAYINVERSE);

@@ -159,6 +159,26 @@ void SSD1306_drawVLine (SSD1306_Device* dev,
                         uint8_t height,
                         SSD1306_Color color);
 
+/**
+ *
+ *
+ * @param[in] dev The handle of the device
+ */
+void SSD1306_inverseDisplay (SSD1306_Device* dev);
+
+/**
+ *
+ *
+ * @param[in] dev The handle of the device
+ */
+void SSD1306_normalDisplay (SSD1306_Device* dev);
+
+/**
+ * This function clear the display setting off all pixel
+ *
+ * @param[in] dev The handle of the device
+ */
+void SSD1306_clear (SSD1306_Device* dev);
 
 /**
  *

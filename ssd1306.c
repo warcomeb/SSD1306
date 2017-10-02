@@ -41,7 +41,7 @@
 #define SSD1306_CMD_SEGMENTREMAP               0xA0
 #define SSD1306_CMD_DISPLAYALLONRESUME         0xA4
 #define SSD1306_CMD_DISPLAYALLON               0xA5
-#define SSD1306_CMD_DISPLAYNORMALL             0xA6
+#define SSD1306_CMD_DISPLAYNORMAL              0xA6
 #define SSD1306_CMD_DISPLAYINVERSE             0xA7
 #define SSD1306_CMD_SETMUXRATIO                0xA8
 #define SSD1306_CMD_DISPLAYOFF                 0xAE
@@ -163,7 +163,7 @@ void SSD1306_init (SSD1306_Device* dev)
     SSD1306_sendCommand(dev,SSD1306_CMD_DISPLAYALLONRESUME);
 
     // Set normal display
-    SSD1306_sendCommand(dev,SSD1306_CMD_DISPLAYNORMALL);
+    SSD1306_sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);
 
     // Set internal clock div to default value
     SSD1306_sendCommand(dev,SSD1306_CMD_SETDISPLAYCLK);
@@ -194,9 +194,9 @@ GDL_Errors SSD1306_drawPixel (SSD1306_Device* dev,
     uint16_t pos = (uint16_t) xPos + ((uint16_t) (yPos/8)*dev->gdl.width);
 
     if (color == SSD1306_COLOR_COLOR)
-        dev->buffer[pos] |= (1 << (yPos%7));
+        dev->buffer[pos] |= (1 << (yPos%8));
     else
-        dev->buffer[pos] &= ~(1 << (yPos%7));
+        dev->buffer[pos] &= ~(1 << (yPos%8));
 
     return GDL_ERRORS_OK;
 }
@@ -232,6 +232,16 @@ void SSD1306_drawVLine (SSD1306_Device* dev,
     SSD1306_drawLine(dev,xStart,yStart,xStart,yStart+height,color);
 }
 
+void SSD1306_inverseDisplay (SSD1306_Device* dev)
+{
+    SSD1306_sendCommand(dev,SSD1306_CMD_DISPLAYINVERSE);
+}
+
+void SSD1306_normalDisplay (SSD1306_Device* dev)
+{
+    SSD1306_sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);
+}
+
 void SSD1306_flush (SSD1306_Device* dev)
 {
     // Set start column address and page address
@@ -253,4 +263,12 @@ void SSD1306_flush (SSD1306_Device* dev)
     {
         SSD1306_sendData(dev,dev->buffer[i]);
     }
+}
+
+void SSD1306_clear (SSD1306_Device* dev)
+{
+    // Reset memory buffer
+    memset(dev->buffer, 0x00, WARCOMEB_SSD1306_BUFFERDIMENSION);
+    // Flush the new buffer
+    SSD1306_flush(dev);
 }

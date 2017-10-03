@@ -179,6 +179,27 @@ void SSD1306_drawRectangle (SSD1306_Device* dev,
                             bool isFill);
 
 /**
+ * The function print a char in the selected position with the selected
+ * color and size.
+ * The starting point is the top-left corner of the char.
+ *
+ * @param[in] dev The handle of the device
+ * @param[in] xPos The x position
+ * @param[in] yPos The y position
+ * @param[in] c The char to be draw
+ * @param[in] color The foreground color of the char
+ * @param[in] size The size for the char, if 0 use default dimension
+ * @return GDL_ERRORS_WRONG_POSITION if the dimension plus position of the char
+ *         exceeds the width or height of the display, GDL_ERRORS_OK otherwise.
+ */
+GDL_Errors SSD1306_drawChar (SSD1306_Device* dev,
+                             uint16_t xPos,
+                             uint16_t yPos,
+                             uint8_t c,
+                             uint8_t color,
+                             uint8_t size);
+
+/**
  *
  *
  * @param[in] dev The handle of the device

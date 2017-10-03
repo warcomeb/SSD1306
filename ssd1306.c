@@ -93,6 +93,10 @@ void SSD1306_init (SSD1306_Device* dev)
     dev->gdl.height = WARCOMEB_SSD1306_HEIGHT;
     dev->gdl.width = WARCOMEB_SSD1306_WIDTH;
 
+    // Save default font size
+    dev->gdl.fontSize = 1;
+    dev->gdl.useCustomFont = FALSE;
+
     // Save callback for drawing pixel
     dev->gdl.drawPixel = SSD1306_drawPixel;
 
@@ -244,6 +248,19 @@ void SSD1306_drawRectangle (SSD1306_Device* dev,
         GDL_drawRectangle(&(dev->gdl),xStart,yStart,width,height,0,isFill);
     else
         GDL_drawRectangle(&(dev->gdl),xStart,yStart,width,height,1,isFill);
+}
+
+GDL_Errors SSD1306_drawChar (SSD1306_Device* dev,
+                             uint16_t xPos,
+                             uint16_t yPos,
+                             uint8_t c,
+                             uint8_t color,
+                             uint8_t size)
+{
+    if (color == SSD1306_COLOR_BLACK)
+        GDL_drawChar(&(dev->gdl),xPos,yPos,c,0,1,size);
+    else
+        GDL_drawChar(&(dev->gdl),xPos,yPos,c,1,0,size);
 }
 
 void SSD1306_inverseDisplay (SSD1306_Device* dev)

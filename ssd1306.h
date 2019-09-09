@@ -1,6 +1,6 @@
-/******************************************************************************
+/*
  * SSD1306 - Library for SSD1306 OLed Driver based on libohiboard
- * Copyright (C) 2017 Marco Giammarini
+ * Copyright (C) 2017-2019 Marco Giammarini
  *
  * Authors:
  *  Marco Giammarini <m.giammarini@warcomeb.it>
@@ -23,18 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- ******************************************************************************/
+ */
 
 #ifndef __WARCOMEB_SSD1306_H
 #define __WARCOMEB_SSD1306_H
 
-#define WARCOMEB_SSD1306_LIBRARY_VERSION     "1.0"
-#define WARCOMEB_SSD1306_LIBRARY_VERSION_M   1
-#define WARCOMEB_SSD1306_LIBRARY_VERSION_m   0
-#define WARCOMEB_SSD1306_LIBRARY_TIME        0
+#define WARCOMEB_SSD1306_LIBRARY_VERSION_MAJOR   (0x1ul)
+#define WARCOMEB_SSD1306_LIBRARY_VERSION_MINOR   (0x0ul)
+#define WARCOMEB_SSD1306_LIBRARY_VERSION_BUG     (0x0ul)
+#define WARCOMEB_SSD1306_LIBRARY_VERSION         ((WARCOMEB_GDL_LIBRARY_VERSION_MAJOR << 16)\
+                                                 |(WARCOMEB_GDL_LIBRARY_VERSION_MINOR << 8 )\
+                                                 |(WARCOMEB_GDL_LIBRARY_VERSION_BUG        ))
+#define WARCOMEB_SSD1306_LIBRARY_TIME            0
 
 #include "libohiboard.h"
-#include "GDL/gdl.h"
+#include "../GDL/gdl.h"
 
 /*
  * The user must define these label...
@@ -71,15 +74,18 @@ typedef enum _SSD1306_Product
     SSD1306_PRODUCT_ADAFRUIT_931   = 0x0001 | GDL_MODELTYPE_SSD1306,
 } SSD1306_Product;
 
-typedef struct SSD1306_Device
+/*!
+ * SSD1306 device class.
+ */
+typedef struct _SSD1306_Device_t
 {
-    GDL_Device gdl;                         /**< Common part for each device */
+    GDL_Device gdl;                         /*!< Common part for each device */
 
 #if defined WARCOMEB_GDL_PARALLEL
 
 #elif defined WARCOMEB_GDL_I2C
 
-    Gpio_Pins rstPin;            /**< Reset pin used for start-up the display */
+    Gpio_Pins rstPin;            /*!< Reset pin used for start-up the display */
 
 #elif defined WARCOMEB_GDL_SPI
 
@@ -88,12 +94,24 @@ typedef struct SSD1306_Device
     /** Buffer to store display data */
     uint8_t buffer [WARCOMEB_SSD1306_BUFFERDIMENSION];
 
-} SSD1306_Device;
+} SSD1306_Device_t, *SSD1306_DeviceHandle_t;
 
-/**
- *
+/*!
+ * SSD1306 configuration struct.
+ * An object of this class must be used to save all module configurations.
  */
-void SSD1306_init (SSD1306_Device* dev);
+typedef struct _SSD1306_Config_t
+{
+    char deviceName[16];
+
+} SSD1306_Config_t;
+
+/*!
+ *
+ * \param[in]    dev:
+ * \param[in] config:
+ */
+void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config);
 
 /**
  *

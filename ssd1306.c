@@ -1,6 +1,6 @@
-/******************************************************************************
+/*
  * SSD1306 - Library for SSD1306 OLed Driver based on libohiboard
- * Copyright (C) 2017 Marco Giammarini
+ * Copyright (C) 2017-2019 Marco Giammarini
  *
  * Authors:
  *  Marco Giammarini <m.giammarini@warcomeb.it>
@@ -23,7 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- ******************************************************************************/
+ */
+
+/*!
+ * \file  /ssd1306.c
+ * \brief
+ */
 
 #include "ssd1306.h"
 
@@ -56,7 +61,7 @@
 #define SSD1306_CMDVALUE_CHARGEPUMP_DISABLE    0x10
 #define SSD1306_CMDVALUE_CHARGEPUMP_ENABLE     0x14
 
-static void SSD1306_sendCommand (SSD1306_Device* dev, uint8_t command)
+static void sendCommand (SSD1306_DeviceHandle_t dev, uint8_t command)
 {
 #if defined WARCOMEB_GDL_PARALLEL
 
@@ -70,7 +75,7 @@ static void SSD1306_sendCommand (SSD1306_Device* dev, uint8_t command)
 #endif
 }
 
-static void SSD1306_sendData (SSD1306_Device* dev, uint8_t value)
+static void sendData (SSD1306_DeviceHandle_t dev, uint8_t value)
 {
 #if defined WARCOMEB_GDL_PARALLEL
 
@@ -84,8 +89,12 @@ static void SSD1306_sendData (SSD1306_Device* dev, uint8_t value)
 #endif
 }
 
-void SSD1306_init (SSD1306_Device* dev)
+void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
 {
+    // Initialize the device pointer
+    memset(dev, 0, sizeof (SSD1306_Device_t));
+
+
     // Set the device model
     dev->gdl.model = GDL_MODELTYPE_SSD1306;
 

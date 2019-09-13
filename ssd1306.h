@@ -36,65 +36,12 @@
                                                  |(WARCOMEB_GDL_LIBRARY_VERSION_BUG        ))
 #define WARCOMEB_SSD1306_LIBRARY_TIME            0
 
-#include "libohiboard.h"
+#include "ssd1306type.h"
 #include "../GDL/gdl.h"
 
-/*
- * The user must define these label...
- * The name of the define is:
- *     #define WARCOMEB_SSD1306_HEIGHT         xx
- *     #define WARCOMEB_SSD1306_WIDTH          xx
- */
-#ifndef __NO_BOARD_H
-#include "board.h"
-#endif
-
-#if !defined(WARCOMEB_SSD1306_HEIGHT) & !defined(WARCOMEB_SSD1306_WIDTH)
-#error "You must define height and width of display!"
-#else
-#define WARCOMEB_SSD1306_BUFFERDIMENSION (WARCOMEB_SSD1306_WIDTH*WARCOMEB_SSD1306_HEIGHT/8)
-#endif
-
-#if defined(WARCOMEB_SSD1306_HEIGHT) & ((WARCOMEB_SSD1306_HEIGHT < 16) | (WARCOMEB_SSD1306_HEIGHT > 64))
-#error "The height must be between 16 and 64!"
-#endif
-
-#if defined(WARCOMEB_SSD1306_WIDTH) & ((WARCOMEB_SSD1306_WIDTH < 16) | (WARCOMEB_SSD1306_WIDTH > 128))
-#error "The width must be between 16 and 128!"
-#endif
-
-typedef enum _SSD1306_Color
-{
-    SSD1306_COLOR_BLACK,
-    SSD1306_COLOR_COLOR
-} SSD1306_Color;
-
-typedef enum _SSD1306_Product
-{
-    SSD1306_PRODUCT_ADAFRUIT_931   = 0x0001 | GDL_MODELTYPE_SSD1306,
-} SSD1306_Product;
-
-/*!
- * SSD1306 device class.
- */
-typedef struct _SSD1306_Device_t
-{
-    GDL_Device gdl;                         /*!< Common part for each device */
-
-#if defined WARCOMEB_GDL_PARALLEL
-
-#elif defined WARCOMEB_GDL_I2C
-
-    Gpio_Pins rstPin;            /*!< Reset pin used for start-up the display */
-
-#elif defined WARCOMEB_GDL_SPI
-
-#endif
-
-    /** Buffer to store display data */
-    uint8_t buffer [WARCOMEB_SSD1306_BUFFERDIMENSION];
-
-} SSD1306_Device_t, *SSD1306_DeviceHandle_t;
+#define SSD1306_MAX_DISPLAY_HEIGHT               64
+#define SSD1306_MAX_DISPLAY_WIDTH                128
+#define SSD1306_BUFFER_DIMENSION                 (SSD1306_MAX_DISPLAY_WIDTH*SSD1306_MAX_DISPLAY_HEIGHT/8)
 
 /*!
  * SSD1306 configuration struct.
@@ -102,9 +49,62 @@ typedef struct _SSD1306_Device_t
  */
 typedef struct _SSD1306_Config_t
 {
-    char deviceName[16];
+    uint16_t product;
+
+    Gpio_Pins rd;
+    Gpio_Pins dc;
+    Gpio_Pins rs;
+    Gpio_Pins cs;
+    Gpio_Pins wr;
+
+    Gpio_Pins d0;
+    Gpio_Pins d1;
+    Gpio_Pins d2;
+    Gpio_Pins d3;
+    Gpio_Pins d4;
+    Gpio_Pins d5;
+    Gpio_Pins d6;
+    Gpio_Pins d7;
+
+    Gpio_Pins rstPin;            /*!< Reset pin used for start-up the display */
+
+#if defined (LIBOHIBOARD_IIC)
+
+    Iic_DeviceHandle iicDev;
+
+    Iic_SdaPins sdaPin;
+    Iic_SclPins sclPins;
+
+#endif
+
+#if defined (LIBOHIBOARD_SPI)
+
+
+#endif
 
 } SSD1306_Config_t;
+
+/*!
+ * SSD1306 device class.
+ */
+typedef struct _SSD1306_Device_t
+{
+    GDL_Device_t gdl;                         /*!< Common part for each device */
+
+    SSD1306_Config_t config;
+
+    bool isChargePump;
+
+    uint8_t protocolType;
+
+#if defined (LIBOHIBOARD_IIC)
+    uint8_t address;
+#endif
+
+    /** Buffer to store display data */
+    uint8_t buffer [SSD1306_BUFFER_DIMENSION];
+
+} SSD1306_Device_t, *SSD1306_DeviceHandle_t;
 
 /*!
  *
@@ -122,10 +122,10 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config);
  * @param[in] color The color of the pixel
  * @return
  */
-GDL_Errors SSD1306_drawPixel (SSD1306_Device* dev,
-                              uint8_t xPos,
-                              uint8_t yPos,
-                              SSD1306_Color color);
+GDL_Errors_t SSD1306_drawPixel (SSD1306_DeviceHandle_t dev,
+                                uint8_t xPos,
+                                uint8_t yPos,
+                                SSD1306_Color_t color);
 
 /**
  * The function print a line in the selected position with the selected
@@ -138,12 +138,12 @@ GDL_Errors SSD1306_drawPixel (SSD1306_Device* dev,
  * @param[in] yStop The ending y position
  * @param[in] color The color of the line
  */
-void SSD1306_drawLine (SSD1306_Device* dev,
+void SSD1306_drawLine (SSD1306_DeviceHandle_t dev,
                        uint8_t xStart,
                        uint8_t yStart,
                        uint8_t xStop,
                        uint8_t yStop,
-                       SSD1306_Color color);
+                       SSD1306_Color_t color);
 
 /**
  * The function print a horizontal line from the selected position with
@@ -155,11 +155,11 @@ void SSD1306_drawLine (SSD1306_Device* dev,
  * @param[in] width The width of the line
  * @param[in] color The color of the line
  */
-void SSD1306_drawHLine (SSD1306_Device* dev,
+void SSD1306_drawHLine (SSD1306_DeviceHandle_t dev,
                         uint8_t xStart,
                         uint8_t yStart,
                         uint8_t width,
-                        SSD1306_Color color);
+                        SSD1306_Color_t color);
 
 /**
  * The function print a vertical line from the selected position with
@@ -171,11 +171,11 @@ void SSD1306_drawHLine (SSD1306_Device* dev,
  * @param[in] height The height of the line
  * @param[in] color The color of the line
  */
-void SSD1306_drawVLine (SSD1306_Device* dev,
+void SSD1306_drawVLine (SSD1306_DeviceHandle_t dev,
                         uint8_t xStart,
                         uint8_t yStart,
                         uint8_t height,
-                        SSD1306_Color color);
+                        SSD1306_Color_t color);
 
 /**
  * The function draw a rectangle. It can be fill or not.
@@ -188,7 +188,7 @@ void SSD1306_drawVLine (SSD1306_Device* dev,
  * @param[in] color The color of the rectangle
  * @param[in] isFill If TRUE the rectangle will be fill
  */
-void SSD1306_drawRectangle (SSD1306_Device* dev,
+void SSD1306_drawRectangle (SSD1306_DeviceHandle_t dev,
                             uint16_t xStart,
                             uint16_t yStart,
                             uint16_t width,
@@ -210,39 +210,39 @@ void SSD1306_drawRectangle (SSD1306_Device* dev,
  * @return GDL_ERRORS_WRONG_POSITION if the dimension plus position of the char
  *         exceeds the width or height of the display, GDL_ERRORS_OK otherwise.
  */
-GDL_Errors SSD1306_drawChar (SSD1306_Device* dev,
-                             uint16_t xPos,
-                             uint16_t yPos,
-                             uint8_t c,
-                             uint8_t color,
-                             uint8_t size);
+GDL_Errors_t SSD1306_drawChar (SSD1306_DeviceHandle_t dev,
+                               uint16_t xPos,
+                               uint16_t yPos,
+                               uint8_t c,
+                               uint8_t color,
+                               uint8_t size);
 
 /**
  *
  *
  * @param[in] dev The handle of the device
  */
-void SSD1306_inverseDisplay (SSD1306_Device* dev);
+void SSD1306_inverseDisplay (SSD1306_DeviceHandle_t dev);
 
 /**
  *
  *
  * @param[in] dev The handle of the device
  */
-void SSD1306_normalDisplay (SSD1306_Device* dev);
+void SSD1306_normalDisplay (SSD1306_DeviceHandle_t dev);
 
 /**
  * This function clear the display setting off all pixel
  *
  * @param[in] dev The handle of the device
  */
-void SSD1306_clear (SSD1306_Device* dev);
+void SSD1306_clear (SSD1306_DeviceHandle_t dev);
 
 /**
  *
  *
  * @param[in] dev The handle of the device
  */
-void SSD1306_flush (SSD1306_Device* dev);
+void SSD1306_flush (SSD1306_DeviceHandle_t dev);
 
-#endif /* __WARCOMEB_SSD1306_H */
+#endif // __WARCOMEB_SSD1306_H

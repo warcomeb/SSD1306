@@ -51,6 +51,7 @@ typedef enum _SSD1306_Color_t
  * \{
  */
 #define SSD1306_PRODUCT_ADAFRUIT_931             (0x0001 | GDL_MODELTYPE_SSD1306)
+#define SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1     (0x0002 | GDL_MODELTYPE_SSD1306)
 /*!
  * \}
  */

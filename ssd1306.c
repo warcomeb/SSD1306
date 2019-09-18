@@ -153,6 +153,12 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
         dev->protocolType = GDL_PROTOCOLTYPE_I2C;
         dev->address      = 0x3C;
         break;
+    case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
+        dev->gdl.height   = 64;
+        dev->gdl.width    = 128;
+        dev->protocolType = GDL_PROTOCOLTYPE_I2C;
+        dev->address      = 0x3C;
+        break;
     default:
         ohiassert(0);
         break;
@@ -213,7 +219,7 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     // Set display start line to first
     sendCommand(dev,SSD1306_CMD_SETDISPLAYSTARTLINE | 0x00);
 
-    // Set addressing mode to HORIZONTAL
+    // Set addressing mode to HORIZONTAL - it is the DEAFULT!
     sendCommand(dev,SSD1306_CMD_SETADDRESSINGMODE);
     sendCommand(dev,0x00);
 
@@ -227,10 +233,12 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
         sendCommand(dev,SSD1306_CMD_COMSCANDIRECTIONDOWN);
         sendCommand(dev,SSD1306_CMD_COMPINS);
         sendCommand(dev,0x02);
-//        SSD1306_sendCommand(dev,SSD1306_CMD_SETDESELECTLEVEL);
-//        SSD1306_sendCommand(dev,0x40);
 
         dev->isChargePump = TRUE;
+        break;
+    case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
+        dev->isChargePump = FALSE;
+        // WARNING: nothing to do!
         break;
     default:
         ohiassert(0);
@@ -241,8 +249,8 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     sendCommand(dev,SSD1306_CMD_SETCONTRAST);
     sendCommand(dev,0x8F);
 
-    // Enable display on
-    sendCommand(dev,SSD1306_CMD_DISPLAYALLONRESUME);
+    // FIXME: Enable display on | It is usefull?
+    //sendCommand(dev,SSD1306_CMD_DISPLAYALLONRESUME);
 
     // Set normal display
     sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);
@@ -374,6 +382,18 @@ void SSD1306_flush (SSD1306_DeviceHandle_t dev)
         sendCommand(dev,0x00);
         // Height is 32px, so 4 page
         sendCommand(dev,0x03);
+        break;
+    case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
+        sendCommand(dev,SSD1306_CMD_SETCOLUMNADDRESS);
+        sendCommand(dev,0x00);
+        sendCommand(dev,dev->gdl.width-1);
+        sendCommand(dev,SSD1306_CMD_SETPAGEADDRESS);
+        sendCommand(dev,0x00);
+        // Height is 64px, so 8 page
+        sendCommand(dev,0x07);
+        break;
+    default:
+        ohiassert(0);
         break;
     }
 

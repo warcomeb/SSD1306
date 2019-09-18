@@ -148,7 +148,7 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     switch (dev->config.product)
     {
     case SSD1306_PRODUCT_ADAFRUIT_931:
-        dev->gdl.height   = 64;
+        dev->gdl.height   = 32;
         dev->gdl.width    = 128;
         dev->protocolType = GDL_PROTOCOLTYPE_I2C;
         dev->address      = 0x3C;
@@ -171,17 +171,18 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     {
     case GDL_PROTOCOLTYPE_PARALLEL:
         {
-
+            // TODO
         }
         break;
     case GDL_PROTOCOLTYPE_I2C:
         {
-
+            ohiassert(dev->config.iicDev != NULL);
+            Iic_init(dev->config.iicDev, &dev->config.iicConfig);
         }
         break;
     case GDL_PROTOCOLTYPE_SPI:
         {
-
+            // TODO
         }
         break;
     default:

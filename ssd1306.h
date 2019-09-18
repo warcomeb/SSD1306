@@ -71,9 +71,10 @@ typedef struct _SSD1306_Config_t
 #if defined (LIBOHIBOARD_IIC)
 
     Iic_DeviceHandle iicDev;
+    Iic_Config       iicConfig;
 
-    Iic_SdaPins sdaPin;
-    Iic_SclPins sclPins;
+    //Iic_SdaPins sdaPin;
+    //Iic_SclPins sclPins;
 
 #endif
 

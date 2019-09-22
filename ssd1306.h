@@ -218,6 +218,13 @@ GDL_Errors_t SSD1306_drawChar (SSD1306_DeviceHandle_t dev,
                                uint8_t color,
                                uint8_t size);
 
+GDL_Errors_t SSD1306_drawString (SSD1306_DeviceHandle_t dev,
+                                 uint16_t xPos,
+                                 uint16_t yPos,
+                                 const char* text,
+                                 uint8_t color,
+                                 uint8_t size);
+
 /**
  *
  *
@@ -245,5 +252,11 @@ void SSD1306_clear (SSD1306_DeviceHandle_t dev);
  * @param[in] dev The handle of the device
  */
 void SSD1306_flush (SSD1306_DeviceHandle_t dev);
+
+void SSD1306_on (SSD1306_DeviceHandle_t dev);
+
+void SSD1306_off (SSD1306_DeviceHandle_t dev);
+
+void SSD1306_setContrast (SSD1306_DeviceHandle_t dev, uint8_t value);
 
 #endif // __WARCOMEB_SSD1306_H

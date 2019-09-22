@@ -134,15 +134,14 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     }
     else
     {
+        // Initialize the device pointer
+        memset(dev, 0, sizeof (SSD1306_Device_t));
         // Save current configuration
         dev->config = *config;
     }
 
-    // Initialize the device pointer
-    memset(dev, 0, sizeof (SSD1306_Device_t));
-
     // Set the device model
-    dev->gdl.model = (uint8_t)((config->product & 0xFF00) >> 8);
+    dev->gdl.model = (uint8_t)((dev->config.product & 0xFF00) >> 8);
 
     // Save device informations
     switch (dev->config.product)
@@ -172,7 +171,6 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     memset(dev->buffer, 0x00, SSD1306_BUFFER_DIMENSION);
 
     // Configure periphearl and pins
-    ohiassert(dev->config.rstPin != GPIO_PINS_NONE);
     switch (dev->protocolType)
     {
     case GDL_PROTOCOLTYPE_PARALLEL:
@@ -195,19 +193,22 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
         ohiassert(0);
     }
     // setup reset pin
-    Gpio_config(dev->config.rstPin,GPIO_PINS_OUTPUT);
+    if (dev->config.rstPin != GPIO_PINS_NONE)
+    {
+        Gpio_config(dev->config.rstPin,GPIO_PINS_OUTPUT);
 
-
-    // Reset sequence
-    Gpio_set(dev->config.rstPin);
-    System_delay(1);
-    Gpio_clear(dev->config.rstPin);
-    System_delay(10);
-    Gpio_set(dev->config.rstPin);
+        // Reset sequence
+        Gpio_set(dev->config.rstPin);
+        System_delay(1);
+        Gpio_clear(dev->config.rstPin);
+        System_delay(10);
+        Gpio_set(dev->config.rstPin);
+    }
 
     // Starting init procedure
     // Turn off the display
     sendCommand(dev,SSD1306_CMD_DISPLAYOFF);
+    System_delay(10);
 
     // Set Multiplex ratio
     sendCommand(dev,SSD1306_CMD_SETMUXRATIO);
@@ -256,9 +257,9 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);
 
     // Set internal clock div to default value
-    sendCommand(dev,SSD1306_CMD_SETDISPLAYCLK);
-    sendCommand(dev,0x80);
-
+//    sendCommand(dev,SSD1306_CMD_SETDISPLAYCLK);
+//    sendCommand(dev,0x80);
+#if 0
     // Choice to enable or disable internal charge pump
     sendCommand(dev,SSD1306_CMD_CHARGEPUMP);
     if (dev->isChargePump)
@@ -272,7 +273,7 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
 
     // Disable scrolling...
     sendCommand(dev,SSD1306_CMD_DEACTIVATESCROLL);
-
+#endif
     // Turn on the display
     // FIXME: Are you shure you want the display ON?
     sendCommand(dev,SSD1306_CMD_DISPLAYON);
@@ -358,6 +359,24 @@ GDL_Errors_t SSD1306_drawChar (SSD1306_DeviceHandle_t dev,
     }
 }
 
+GDL_Errors_t SSD1306_drawString (SSD1306_DeviceHandle_t dev,
+                                 uint16_t xPos,
+                                 uint16_t yPos,
+                                 const char* text,
+                                 uint8_t color,
+                                 uint8_t size)
+{
+    uint8_t charWidth = size * GDL_DEFAULT_FONT_WIDTH;
+    GDL_Errors_t error;
+
+    for (uint8_t i=0; text[i] != '\n' && text[i] != '\0'; i++)
+    {
+        error = SSD1306_drawChar(dev,(xPos + charWidth * i),yPos,text[i],color,size);
+        if (error != GDL_ERRORS_SUCCESS) return error;
+    }
+    return GDL_ERRORS_SUCCESS;
+}
+
 void SSD1306_inverseDisplay (SSD1306_DeviceHandle_t dev)
 {
     sendCommand(dev,SSD1306_CMD_DISPLAYINVERSE);
@@ -409,4 +428,14 @@ void SSD1306_clear (SSD1306_DeviceHandle_t dev)
     memset(dev->buffer, 0x00, SSD1306_BUFFER_DIMENSION);
     // Flush the new buffer
     SSD1306_flush(dev);
+}
+
+void SSD1306_on (SSD1306_DeviceHandle_t dev)
+{
+    sendCommand(dev,SSD1306_CMD_DISPLAYON);
+}
+
+void SSD1306_off (SSD1306_DeviceHandle_t dev)
+{
+    sendCommand(dev,SSD1306_CMD_DISPLAYOFF);
 }

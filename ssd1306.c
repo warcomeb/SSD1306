@@ -61,6 +61,13 @@
 #define SSD1306_CMDVALUE_CHARGEPUMP_DISABLE    0x10
 #define SSD1306_CMDVALUE_CHARGEPUMP_ENABLE     0x14
 
+#define SSD1306_CMD_COMPINS_COMMON_BASE             0x02
+#define SSD1306_CMD_COMPINS_COMMON_SEQUENTIAL       0x00
+#define SSD1306_CMD_COMPINS_COMMON_ALTERNATIVE      0x10
+#define SSD1306_CMD_COMPINS_COMMON_LEFTRIGHT_NORMAL 0x00
+#define SSD1306_CMD_COMPINS_COMMON_LEFTRIGHT_FLIP   0x20
+
+
 static inline void sendCommand (SSD1306_DeviceHandle_t dev, uint8_t command)
 {
     uint8_t cmd = command;
@@ -238,6 +245,15 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
         dev->isChargePump = TRUE;
         break;
     case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
+        // column address 0 is mapped to SEG0 (Reset)
+        sendCommand(dev,SSD1306_CMD_SEGMENTREMAP | 0x00);
+        // row address 0 is mapped to COM0 (Reset)
+        sendCommand(dev,SSD1306_CMD_COMSCANDIRECTIONUP);
+        sendCommand(dev,SSD1306_CMD_COMPINS);
+        sendCommand(dev,SSD1306_CMD_COMPINS_COMMON_BASE        |
+                        SSD1306_CMD_COMPINS_COMMON_ALTERNATIVE |
+                        SSD1306_CMD_COMPINS_COMMON_LEFTRIGHT_NORMAL);
+
         dev->isChargePump = FALSE;
         // WARNING: nothing to do!
         break;
@@ -251,7 +267,7 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     sendCommand(dev,0x8F);
 
     // FIXME: Enable display on | It is usefull?
-    //sendCommand(dev,SSD1306_CMD_DISPLAYALLONRESUME);
+    sendCommand(dev,SSD1306_CMD_DISPLAYALLONRESUME);
 
     // Set normal display
     sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);

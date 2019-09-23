@@ -44,11 +44,12 @@
 #define SSD1306_CMD_SETCONTRAST                0x81
 #define SSD1306_CMD_CHARGEPUMP                 0x8D
 #define SSD1306_CMD_SEGMENTREMAP               0xA0
-#define SSD1306_CMD_DISPLAYALLONRESUME         0xA4
+#define SSD1306_CMD_DISPLAYONRAM               0xA4
 #define SSD1306_CMD_DISPLAYALLON               0xA5
 #define SSD1306_CMD_DISPLAYNORMAL              0xA6
 #define SSD1306_CMD_DISPLAYINVERSE             0xA7
 #define SSD1306_CMD_SETMUXRATIO                0xA8
+#define SSD1306_CMD_SETIREF                    0xAD
 #define SSD1306_CMD_DISPLAYOFF                 0xAE
 #define SSD1306_CMD_DISPLAYON                  0xAF
 #define SSD1306_CMD_COMSCANDIRECTIONUP         0xC0
@@ -67,6 +68,12 @@
 #define SSD1306_CMD_COMPINS_COMMON_LEFTRIGHT_NORMAL 0x00
 #define SSD1306_CMD_COMPINS_COMMON_LEFTRIGHT_FLIP   0x20
 
+#define SSD1306_ADDRESSING_HORIZONTAL_MODE     0x00
+#define SSD1306_ADDRESSING_VERTICAL_MODE       0x01
+#define SSD1306_ADDRESSING_PAGE_MODE           0x02
+
+#define SSD1306_CMD_SETIREF_INTERNAL           0x10
+#define SSD1306_CMD_SETIREF_EXTERNAL           0x00
 
 static inline void sendCommand (SSD1306_DeviceHandle_t dev, uint8_t command)
 {
@@ -130,6 +137,42 @@ static inline void sendData (SSD1306_DeviceHandle_t dev, uint8_t value)
     default:
         ohiassert(0);
     }
+}
+
+/*!
+ * Sets Internal Iref
+ *
+ * \note This command is usable only with SSD1308 driver.
+ */
+static void setInternalIref (SSD1306_DeviceHandle_t dev)
+{
+  sendCommand(dev,SSD1306_CMD_SETIREF);
+  sendCommand(dev,SSD1306_CMD_SETIREF_INTERNAL);
+}
+
+/*!
+ * Sets External Iref (default)
+ *
+ * \note This command is usable only with SSD1308 driver.
+ */
+static void setExternalIref (SSD1306_DeviceHandle_t dev)
+{
+    sendCommand(dev,SSD1306_CMD_SETIREF);
+    sendCommand(dev,SSD1306_CMD_SETIREF_EXTERNAL);
+}
+
+static void setPageAddress (SSD1306_DeviceHandle_t dev, uint8_t start, uint8_t end)
+{
+    sendCommand(dev,SSD1306_CMD_SETPAGEADDRESS);
+    sendCommand(dev,start);
+    sendCommand(dev,end);
+}
+
+static void setColumnAddress (SSD1306_DeviceHandle_t dev, uint8_t start, uint8_t end)
+{
+    sendCommand(dev,SSD1306_CMD_SETCOLUMNADDRESS);
+    sendCommand(dev,start);
+    sendCommand(dev,end);
 }
 
 void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
@@ -217,10 +260,6 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     sendCommand(dev,SSD1306_CMD_DISPLAYOFF);
     System_delay(10);
 
-    // Set Multiplex ratio
-    sendCommand(dev,SSD1306_CMD_SETMUXRATIO);
-    sendCommand(dev,dev->gdl.height-1);
-
     // Set display offset to NO OFFSET
     sendCommand(dev,SSD1306_CMD_SETDISPLAYOFFSET);
     sendCommand(dev,0x00);
@@ -229,7 +268,7 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
 
     // Set addressing mode to HORIZONTAL - it is the DEAFULT!
     sendCommand(dev,SSD1306_CMD_SETADDRESSINGMODE);
-    sendCommand(dev,0x00);
+    sendCommand(dev,SSD1306_ADDRESSING_HORIZONTAL_MODE);
 
     // Select segment re-map, COM scan direction, COM hardware configuration and
     // de-select level
@@ -240,7 +279,15 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
         sendCommand(dev,SSD1306_CMD_SEGMENTREMAP | 0x01);
         sendCommand(dev,SSD1306_CMD_COMSCANDIRECTIONDOWN);
         sendCommand(dev,SSD1306_CMD_COMPINS);
-        sendCommand(dev,0x02);
+        sendCommand(dev,SSD1306_CMD_COMPINS_COMMON_BASE);
+
+        // Set internal clock div to default value
+        sendCommand(dev,SSD1306_CMD_SETDISPLAYCLK);
+        sendCommand(dev,0x80);
+
+        // Set Multiplex ratio
+        sendCommand(dev,SSD1306_CMD_SETMUXRATIO);
+        sendCommand(dev,dev->gdl.height-1);
 
         dev->isChargePump = TRUE;
         break;
@@ -254,6 +301,16 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
                         SSD1306_CMD_COMPINS_COMMON_ALTERNATIVE |
                         SSD1306_CMD_COMPINS_COMMON_LEFTRIGHT_NORMAL);
 
+        setInternalIref(dev);
+
+        // Set internal clock
+        sendCommand(dev,SSD1306_CMD_SETDISPLAYCLK);
+        sendCommand(dev,0x70);
+
+        // Set Multiplex ratio
+        sendCommand(dev,SSD1306_CMD_SETMUXRATIO);
+        sendCommand(dev,dev->gdl.height-1);
+
         dev->isChargePump = FALSE;
         // WARNING: nothing to do!
         break;
@@ -266,15 +323,10 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     sendCommand(dev,SSD1306_CMD_SETCONTRAST);
     sendCommand(dev,0x8F);
 
-    // FIXME: Enable display on | It is usefull?
-    sendCommand(dev,SSD1306_CMD_DISPLAYALLONRESUME);
-
     // Set normal display
     sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);
 
-    // Set internal clock div to default value
-//    sendCommand(dev,SSD1306_CMD_SETDISPLAYCLK);
-//    sendCommand(dev,0x80);
+
 #if 0
     // Choice to enable or disable internal charge pump
     sendCommand(dev,SSD1306_CMD_CHARGEPUMP);
@@ -286,10 +338,14 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     {
         sendCommand(dev,SSD1306_CMDVALUE_CHARGEPUMP_DISABLE);
     }
-
-    // Disable scrolling...
-    sendCommand(dev,SSD1306_CMD_DEACTIVATESCROLL);
 #endif
+
+    // Disable scrolling... by default!
+    SSD1306_scroll(dev, FALSE);
+
+    // Enable display on with RAM content
+    sendCommand(dev,SSD1306_CMD_DISPLAYONRAM);
+
     // Turn on the display
     // FIXME: Are you shure you want the display ON?
     sendCommand(dev,SSD1306_CMD_DISPLAYON);
@@ -403,6 +459,18 @@ void SSD1306_normalDisplay (SSD1306_DeviceHandle_t dev)
     sendCommand(dev,SSD1306_CMD_DISPLAYNORMAL);
 }
 
+void SSD1306_scroll (SSD1306_DeviceHandle_t dev, bool scroll)
+{
+    if (scroll)
+    {
+        sendCommand(dev,SSD1306_CMD_ACTIVATESCROLL);
+    }
+    else
+    {
+        sendCommand(dev,SSD1306_CMD_DEACTIVATESCROLL);
+    }
+}
+
 void SSD1306_flush (SSD1306_DeviceHandle_t dev)
 {
     // Set start column address and page address
@@ -410,29 +478,20 @@ void SSD1306_flush (SSD1306_DeviceHandle_t dev)
     switch (dev->config.product)
     {
     case SSD1306_PRODUCT_ADAFRUIT_931:
-        sendCommand(dev,SSD1306_CMD_SETCOLUMNADDRESS);
-        sendCommand(dev,0x00);
-        sendCommand(dev,dev->gdl.width-1);
-        sendCommand(dev,SSD1306_CMD_SETPAGEADDRESS);
-        sendCommand(dev,0x00);
-        // Height is 32px, so 4 page
-        sendCommand(dev,0x03);
+        setColumnAddress(dev, 0x00, dev->gdl.width-1);
+        setPageAddress(dev, 0x00, 0x03);
         break;
     case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
-        sendCommand(dev,SSD1306_CMD_SETCOLUMNADDRESS);
-        sendCommand(dev,0x00);
-        sendCommand(dev,dev->gdl.width-1);
-        sendCommand(dev,SSD1306_CMD_SETPAGEADDRESS);
-        sendCommand(dev,0x00);
-        // Height is 64px, so 8 page
-        sendCommand(dev,0x07);
+        setColumnAddress(dev, 0x00, dev->gdl.width-1);
+        setPageAddress(dev, 0x00, 0x07);
         break;
     default:
         ohiassert(0);
         break;
     }
 
-    for (uint16_t i = 0; i < SSD1306_BUFFER_DIMENSION; ++i)
+    uint16_t count = dev->gdl.width * (dev->gdl.height / 8);
+    for (uint16_t i = 0; i < count; ++i)
     {
         sendData(dev,dev->buffer[i]);
     }

@@ -239,6 +239,8 @@ void SSD1306_inverseDisplay (SSD1306_DeviceHandle_t dev);
  */
 void SSD1306_normalDisplay (SSD1306_DeviceHandle_t dev);
 
+void SSD1306_scroll (SSD1306_DeviceHandle_t dev, bool scroll);
+
 /**
  * This function clear the display setting off all pixel
  *

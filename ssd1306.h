@@ -225,40 +225,69 @@ GDL_Errors_t SSD1306_drawString (SSD1306_DeviceHandle_t dev,
                                  uint8_t color,
                                  uint8_t size);
 
-/**
+/*!
+ * The function shows black pixels on white background.
  *
- *
- * @param[in] dev The handle of the device
+ * \param[in] dev: The handle of the device
  */
 void SSD1306_inverseDisplay (SSD1306_DeviceHandle_t dev);
 
-/**
+/*!
+ * The function shows white pixels on black background.
  *
- *
- * @param[in] dev The handle of the device
+ * \param[in] dev: The handle of the device
  */
 void SSD1306_normalDisplay (SSD1306_DeviceHandle_t dev);
 
+/*!
+ * The function starts or stop the motion of scrolling.
+ * The start scrolling should only be issued after the scroll setup parameters
+ * have been defined by the scrolling setup function.
+ *
+ * \todo Implement the setup scrolling parameters function.
+ *
+ * \param[in]    dev: The handle of the device.
+ * \param[in] scroll: TRUE for enable the scrolling, FALSE otherwise.
+ */
 void SSD1306_scroll (SSD1306_DeviceHandle_t dev, bool scroll);
 
-/**
- * This function clear the display setting off all pixel
+/*!
+ * This function clear the display content.
+ * At the same time, the function clear the local buffer content.
  *
- * @param[in] dev The handle of the device
+ * \param[in] dev: The handle of the device.
  */
 void SSD1306_clear (SSD1306_DeviceHandle_t dev);
 
-/**
+/*!
+ * This function writes all the buffer content to the display.
+ * The function wrties all pixel.
  *
- *
- * @param[in] dev The handle of the device
+ * \param[in] dev: The handle of the device.
  */
 void SSD1306_flush (SSD1306_DeviceHandle_t dev);
 
+/*!
+ * This function turn the OLED panel display ON.
+ *
+ * \param[in] dev: The handle of the device
+ */
 void SSD1306_on (SSD1306_DeviceHandle_t dev);
 
+/*!
+ * This function turn the OLED panel display OFF.
+ *
+ * \param[in] dev: The handle of the device
+ */
 void SSD1306_off (SSD1306_DeviceHandle_t dev);
 
+/*!
+ * This function sets the contrast setting of the display.
+ * The display has 256 contrast steps: from 00h to FFh.
+ *
+ * \param[in]   dev: The handle of the device
+ * \param[in] value: The contrast value.
+ */
 void SSD1306_setContrast (SSD1306_DeviceHandle_t dev, uint8_t value);
 
 #endif // __WARCOMEB_SSD1306_H

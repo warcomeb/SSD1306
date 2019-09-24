@@ -88,13 +88,19 @@ static inline void sendCommand (SSD1306_DeviceHandle_t dev, uint8_t command)
         break;
     case GDL_PROTOCOLTYPE_I2C:
         {
-            Iic_writeRegister(dev->config.iicDev,
-                              dev->address,
-                              SSD1306_SEND_COMMAND,
-                              IIC_REGISTERADDRESSSIZE_8BIT,
-                              &cmd,
-                              1,
-                              100);
+            uint8_t retry = 3;
+            System_Errors err = ERRORS_NO_ERROR;
+            do
+            {
+                Iic_writeRegister(dev->config.iicDev,
+                                  dev->address,
+                                  SSD1306_SEND_COMMAND,
+                                  IIC_REGISTERADDRESSSIZE_8BIT,
+                                  &cmd,
+                                  1,
+                                  100);
+                retry--;
+            } while (retry > 0 && err != ERRORS_NO_ERROR);
         }
         break;
     case GDL_PROTOCOLTYPE_SPI:
@@ -120,13 +126,19 @@ static inline void sendData (SSD1306_DeviceHandle_t dev, uint8_t value)
         break;
     case GDL_PROTOCOLTYPE_I2C:
         {
-            Iic_writeRegister(dev->config.iicDev,
-                              dev->address,
-                              SSD1306_SEND_DATA,
-                              IIC_REGISTERADDRESSSIZE_8BIT,
-                              &data,
-                              1,
-                              100);
+            uint8_t retry = 3;
+            System_Errors err = ERRORS_NO_ERROR;
+            do
+            {
+                err = Iic_writeRegister(dev->config.iicDev,
+                                        dev->address,
+                                        SSD1306_SEND_DATA,
+                                        IIC_REGISTERADDRESSSIZE_8BIT,
+                                        &data,
+                                        1,
+                                        100);
+                retry--;
+            } while (retry > 0 && err != ERRORS_NO_ERROR);
         }
         break;
     case GDL_PROTOCOLTYPE_SPI:
@@ -143,6 +155,8 @@ static inline void sendData (SSD1306_DeviceHandle_t dev, uint8_t value)
  * Sets Internal Iref
  *
  * \note This command is usable only with SSD1308 driver.
+ *
+ * \param[in] dev: The handle of the device
  */
 static void setInternalIref (SSD1306_DeviceHandle_t dev)
 {
@@ -154,6 +168,8 @@ static void setInternalIref (SSD1306_DeviceHandle_t dev)
  * Sets External Iref (default)
  *
  * \note This command is usable only with SSD1308 driver.
+ *
+ * \param[in] dev: The handle of the device.
  */
 static void setExternalIref (SSD1306_DeviceHandle_t dev)
 {
@@ -161,6 +177,13 @@ static void setExternalIref (SSD1306_DeviceHandle_t dev)
     sendCommand(dev,SSD1306_CMD_SETIREF_EXTERNAL);
 }
 
+/*!
+ * This function specifies page start address and end address of the display data RAM.
+ *
+ * \param[in]   dev: The handle of the device.
+ * \param[in] start: The page start address.
+ * \param[in]   end: The page end address.
+ */
 static void setPageAddress (SSD1306_DeviceHandle_t dev, uint8_t start, uint8_t end)
 {
     sendCommand(dev,SSD1306_CMD_SETPAGEADDRESS);
@@ -168,6 +191,13 @@ static void setPageAddress (SSD1306_DeviceHandle_t dev, uint8_t start, uint8_t e
     sendCommand(dev,end);
 }
 
+/*!
+ * This function specifies column start address and end address of the display data RAM.
+ *
+ * \param[in]   dev: The handle of the device.
+ * \param[in] start: The column start address.
+ * \param[in]   end: The column end address.
+ */
 static void setColumnAddress (SSD1306_DeviceHandle_t dev, uint8_t start, uint8_t end)
 {
     sendCommand(dev,SSD1306_CMD_SETCOLUMNADDRESS);
@@ -482,8 +512,8 @@ void SSD1306_flush (SSD1306_DeviceHandle_t dev)
         setPageAddress(dev, 0x00, 0x03);
         break;
     case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
-        setColumnAddress(dev, 0x00, dev->gdl.width-1);
         setPageAddress(dev, 0x00, 0x07);
+        setColumnAddress(dev, 0x00, dev->gdl.width-1);
         break;
     default:
         ohiassert(0);
@@ -513,4 +543,10 @@ void SSD1306_on (SSD1306_DeviceHandle_t dev)
 void SSD1306_off (SSD1306_DeviceHandle_t dev)
 {
     sendCommand(dev,SSD1306_CMD_DISPLAYOFF);
+}
+
+void SSD1306_setContrast (SSD1306_DeviceHandle_t dev, uint8_t value)
+{
+    sendCommand(dev,SSD1306_CMD_SETCONTRAST);
+    sendCommand(dev, value);
 }

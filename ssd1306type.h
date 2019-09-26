@@ -40,6 +40,9 @@ extern "C" {
  * \{
  */
 
+/*!
+ * List of possible colors
+ */
 typedef enum _SSD1306_Color_t
 {
     SSD1306_COLOR_BLACK,

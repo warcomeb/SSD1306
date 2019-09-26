@@ -31,9 +31,9 @@
 #define WARCOMEB_SSD1306_LIBRARY_VERSION_MAJOR   (0x1ul)
 #define WARCOMEB_SSD1306_LIBRARY_VERSION_MINOR   (0x0ul)
 #define WARCOMEB_SSD1306_LIBRARY_VERSION_BUG     (0x0ul)
-#define WARCOMEB_SSD1306_LIBRARY_VERSION         ((WARCOMEB_GDL_LIBRARY_VERSION_MAJOR << 16)\
-                                                 |(WARCOMEB_GDL_LIBRARY_VERSION_MINOR << 8 )\
-                                                 |(WARCOMEB_GDL_LIBRARY_VERSION_BUG        ))
+#define WARCOMEB_SSD1306_LIBRARY_VERSION         ((WARCOMEB_SSD1306_LIBRARY_VERSION_MAJOR << 16)\
+                                                 |(WARCOMEB_SSD1306_LIBRARY_VERSION_MINOR << 8 )\
+                                                 |(WARCOMEB_SSD1306_LIBRARY_VERSION_BUG        ))
 #define WARCOMEB_SSD1306_LIBRARY_TIME            0
 
 #include "ssd1306type.h"
@@ -73,9 +73,6 @@ typedef struct _SSD1306_Config_t
     Iic_DeviceHandle iicDev;
     Iic_Config       iicConfig;
 
-    //Iic_SdaPins sdaPin;
-    //Iic_SclPins sclPins;
-
 #endif
 
 #if defined (LIBOHIBOARD_SPI)
@@ -102,42 +99,46 @@ typedef struct _SSD1306_Device_t
     uint8_t address;
 #endif
 
-    /** Buffer to store display data */
+    uint8_t page;
+    uint8_t column;
+
+    /*! Buffer to store display data */
     uint8_t buffer [SSD1306_BUFFER_DIMENSION];
 
 } SSD1306_Device_t, *SSD1306_DeviceHandle_t;
 
 /*!
+ * The function initialize and configure the display.
  *
- * \param[in]    dev:
- * \param[in] config:
+ * \param[in]    dev: The handle of the device.
+ * \param[in] config: A structure with all configuration parameters.
  */
 void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config);
 
-/**
+/*!
  *
  *
- * @param[in] dev The handle of the device
- * @param[in] xPos The x position
- * @param[in] yPos The y position
- * @param[in] color The color of the pixel
- * @return
+ * \param[in]   dev: The handle of the device
+ * \param[in]  xPos: The x position
+ * \param[in]  yPos: The y position
+ * \param[in] color: The color of the pixel
+ * \return
  */
 GDL_Errors_t SSD1306_drawPixel (SSD1306_DeviceHandle_t dev,
                                 uint8_t xPos,
                                 uint8_t yPos,
                                 SSD1306_Color_t color);
 
-/**
+/*!
  * The function print a line in the selected position with the selected
  * color.
  *
- * @param[in] dev The handle of the device
- * @param[in] xStart The starting x position
- * @param[in] yStart The starting y position
- * @param[in] xStop The ending x position
- * @param[in] yStop The ending y position
- * @param[in] color The color of the line
+ * \param[in]    dev: The handle of the device
+ * \param[in] xStart: The starting x position
+ * \param[in] yStart: The starting y position
+ * \param[in]  xStop: The ending x position
+ * \param[in]  yStop: The ending y position
+ * \param[in]  color: The color of the line
  */
 void SSD1306_drawLine (SSD1306_DeviceHandle_t dev,
                        uint8_t xStart,
@@ -224,6 +225,13 @@ GDL_Errors_t SSD1306_drawString (SSD1306_DeviceHandle_t dev,
                                  const char* text,
                                  uint8_t color,
                                  uint8_t size);
+
+GDL_Errors_t SSD1306_drawPicture (SSD1306_DeviceHandle_t dev,
+                                  uint16_t xPos,
+                                  uint16_t yPos,
+                                  uint16_t width,
+                                  uint16_t height,
+                                  const uint8_t* picture);
 
 /*!
  * The function shows black pixels on white background.

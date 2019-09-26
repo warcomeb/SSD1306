@@ -229,12 +229,16 @@ void SSD1306_init (SSD1306_DeviceHandle_t dev, SSD1306_Config_t* config)
     case SSD1306_PRODUCT_ADAFRUIT_931:
         dev->gdl.height   = 32;
         dev->gdl.width    = 128;
+        dev->page         = 4;
+        dev->column       = 128;
         dev->protocolType = GDL_PROTOCOLTYPE_I2C;
         dev->address      = 0x3C;
         break;
     case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
         dev->gdl.height   = 64;
         dev->gdl.width    = 128;
+        dev->page         = 8;
+        dev->column       = 128;
         dev->protocolType = GDL_PROTOCOLTYPE_I2C;
         dev->address      = 0x3C;
         break;
@@ -479,6 +483,16 @@ GDL_Errors_t SSD1306_drawString (SSD1306_DeviceHandle_t dev,
     return GDL_ERRORS_SUCCESS;
 }
 
+GDL_Errors_t SSD1306_drawPicture (SSD1306_DeviceHandle_t dev,
+                                  uint16_t xPos,
+                                  uint16_t yPos,
+                                  uint16_t width,
+                                  uint16_t height,
+                                  const uint8_t* picture)
+{
+    return GDL_drawPicture(dev, xPos, yPos, width, height, picture, GDL_PICTURETYPE_1BIT);
+}
+
 void SSD1306_inverseDisplay (SSD1306_DeviceHandle_t dev)
 {
     sendCommand(dev,SSD1306_CMD_DISPLAYINVERSE);
@@ -505,22 +519,10 @@ void SSD1306_flush (SSD1306_DeviceHandle_t dev)
 {
     // Set start column address and page address
     // They depend on producer choice and device type
-    switch (dev->config.product)
-    {
-    case SSD1306_PRODUCT_ADAFRUIT_931:
-        setColumnAddress(dev, 0x00, dev->gdl.width-1);
-        setPageAddress(dev, 0x00, 0x03);
-        break;
-    case SSD1306_PRODUCT_SEEEDSTUDIO_OLED_1_1:
-        setPageAddress(dev, 0x00, 0x07);
-        setColumnAddress(dev, 0x00, dev->gdl.width-1);
-        break;
-    default:
-        ohiassert(0);
-        break;
-    }
+    setPageAddress(dev, 0x00, dev->page-1);
+    setColumnAddress(dev, 0x00, dev->column-1);
 
-    uint16_t count = dev->gdl.width * (dev->gdl.height / 8);
+    uint16_t count = dev->column * dev->page;
     for (uint16_t i = 0; i < count; ++i)
     {
         sendData(dev,dev->buffer[i]);

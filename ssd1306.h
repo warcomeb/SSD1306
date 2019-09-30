@@ -39,7 +39,7 @@ extern "C" {
  *
  * \section changelog ChangeLog
  *
- * \li v1.0.0 of 2019/09/xx - First release
+ * \li v1.0.0 of 2019/09/30 - First release
  *
  * \section library External Library
  *
@@ -126,7 +126,7 @@ extern "C" {
 #define WARCOMEB_SSD1306_LIBRARY_VERSION         ((WARCOMEB_SSD1306_LIBRARY_VERSION_MAJOR << 16)\
                                                  |(WARCOMEB_SSD1306_LIBRARY_VERSION_MINOR << 8 )\
                                                  |(WARCOMEB_SSD1306_LIBRARY_VERSION_BUG        ))
-#define WARCOMEB_SSD1306_LIBRARY_TIME            0
+#define WARCOMEB_SSD1306_LIBRARY_TIME            1569878719
 
 #include "ssd1306type.h"
 #include "../GDL/gdl.h"
